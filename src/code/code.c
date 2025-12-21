@@ -6,7 +6,7 @@
 #include "ps2rpc.h"
 
 typedef int (*readBufferInternal_t)(char *, int, int, void *, int, int);
-readBufferInternal_t readBufferInternal = (readBufferInternal_t)0x00244438;
+readBufferInternal_t readBufferInternal = (readBufferInternal_t)0x00244378;
 
 static void readDiscData(int off, u8 *dest, int len) {
     u8 tmp[0x800];
@@ -38,7 +38,7 @@ static void readDiscData(int off, u8 *dest, int len) {
 }
 
 void main() {
-    int off = (391 - 281) << 11;
+    int off = (396 - 278) << 11;
     Elf32_Ehdr ehdr;
     readDiscData(off, (u8 *)&ehdr, sizeof(Elf32_Ehdr));
     for (int i = 0; i < ehdr.e_phnum; i++) {
@@ -54,8 +54,8 @@ void main() {
     }
     FlushCache(0);
     FlushCache(2);
-    sceSifResetIop("rom0:UDNL rom0:EELOADCNF", 0);
-    while(!sceSifSyncIop());
+    /*sceSifResetIop("rom0:UDNL rom0:EELOADCNF", 0);
+    while(!sceSifSyncIop());*/
     sceSifInitRpc(0);
     sceSifExitRpc();
     ExecPS2((void *)ehdr.e_entry, 0, 0, NULL);
