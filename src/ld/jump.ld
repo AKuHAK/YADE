@@ -2,7 +2,7 @@ ENTRY(_start)
 
 SECTIONS
 {
-    .text 0x1387f10 : {
+    .text 0x01103710 : {
         *(.text.boot)
         *(.text*)
     }

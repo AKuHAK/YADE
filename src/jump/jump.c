@@ -1,7 +1,7 @@
 #include "ps2syscalls.h"
 
 typedef int (*readBufferInternal_t)(char *, int, int, void *, int, int);
-readBufferInternal_t readBufferInternal = (readBufferInternal_t)0x00244378;
+readBufferInternal_t readBufferInternal = (readBufferInternal_t)0x00244018;
 
 typedef void (*code_t)(void);
 code_t code = (code_t)((void *)(0x2000000 - (0x800 * 2)));

