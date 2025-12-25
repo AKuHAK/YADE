@@ -55,8 +55,12 @@ int generate_exploit_pgc(char *out_path, uint32_t off, uint32_t len, uint32_t ea
         free(pgc);
         return -1;
     }
-    uint8_t vts_pgci[16] = {0,    1,    0,    0,    0xff, 0xff, 0xff, 0xff,
-                            0xff, 0xff, 0xff, 0xff, 0,    0,    0,    16};
+    uint8_t vts_pgci[16] = {
+        0x00, 0x01, 0x00, 0x00,
+        0xff, 0xff, 0xff, 0xff,
+        0xff, 0xff, 0xff, 0xff,
+        0x00, 0x00, 0x00, 0x10
+    };
 
     uint32_t end_addr = 16 + (pgc_buf_len - 1);
 
