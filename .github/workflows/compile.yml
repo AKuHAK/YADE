@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ps2homebrew/ps2homebrew:latest
+    container: ghcr.io/ps2homebrew/ps2homebrew:latest
 
     steps:
     - name: Checkout repository
