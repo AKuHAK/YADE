@@ -1,0 +1,30 @@
+name: Build YADE Exploit
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: pgcalixto/mips-none-elf-gcc
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+
+    - name: Install dependencies
+      run: |
+          apt-get update && apt-get install -y genisoimage build-essential
+
+    - name: Compile
+      run: |
+        ./compile.sh
+
+    - name: Upload ISO Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: YADE-exploit-iso
+        # Согласно README, результат сохраняется в папку build/
+        path: build/exploit.iso
+        if-no-files-found: error
