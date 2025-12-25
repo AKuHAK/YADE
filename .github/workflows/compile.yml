@@ -7,10 +7,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ghcr.io/ps2homebrew/ps2homebrew:latest
-
+    container: ghcr.io/ps2homebrew/ps2homebrew:main
     steps:
-    - name: Checkout repository
+    - name: git checkout
       uses: actions/checkout@v4
 
     - name: Install dependencies
