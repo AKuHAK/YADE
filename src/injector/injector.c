@@ -3,8 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MIN(x, y) (x > y ? y : x)
-#define MAX(x, y) (x > y ? x : y)
+#define MIN(x, y) ((x) > (y) ? (y) : (x))
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 int generate_exploit_pgc(char *out_path, uint32_t off, uint32_t len, uint32_t eaddr) {
     pgc_t *pgc = (pgc_t *)calloc(1, sizeof(pgc_t));
