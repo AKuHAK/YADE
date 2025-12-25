@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: pgcalixto/mips-none-elf-gcc
+    container: ps2homebrew/ps2homebrew:latest
 
     steps:
     - name: Checkout repository
@@ -15,16 +15,19 @@ jobs:
 
     - name: Install dependencies
       run: |
-          apt-get update && apt-get install -y genisoimage build-essential
+        # Образ ps2dev:latest базируется на Alpine Linux.
+        # Вместо apt-get используем apk.
+        # cdrkit содержит genisoimage (mkisofs).
+        apk add --no-cache cdrkit build-base
 
     - name: Compile
       run: |
+        chmod +x compile.sh
         ./compile.sh
 
     - name: Upload ISO Artifact
       uses: actions/upload-artifact@v4
       with:
         name: YADE-exploit-iso
-        # Согласно README, результат сохраняется в папку build/
         path: build/exploit.iso
         if-no-files-found: error
