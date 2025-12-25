@@ -1,0 +1,83 @@
+name: Build YADE Exploit
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y genisoimage
+        
+    - name: Install MIPS toolchain
+      run: |
+        # Download and install ps2dev toolchain
+        wget -q https://github.com/ps2dev/ps2dev/releases/download/latest/ps2dev-ubuntu-latest.tar.gz
+        sudo tar -xf ps2dev-ubuntu-latest.tar.gz -C /
+        echo "/usr/local/ps2dev/ee/bin" >> $GITHUB_PATH
+        echo "/usr/local/ps2dev/iop/bin" >> $GITHUB_PATH
+        echo "/usr/local/ps2dev/dvp/bin" >> $GITHUB_PATH
+        
+    - name: Create toolchain symlinks
+      run: |
+        # Create symlinks for mipsel-none-elf to mips64r5900el-ps2-elf
+        sudo ln -sf /usr/local/ps2dev/ee/bin/mips64r5900el-ps2-elf-gcc /usr/local/bin/mipsel-none-elf-gcc
+        sudo ln -sf /usr/local/ps2dev/ee/bin/mips64r5900el-ps2-elf-objcopy /usr/local/bin/mipsel-none-elf-objcopy
+        which mipsel-none-elf-gcc
+        which mipsel-none-elf-objcopy
+        
+    - name: Build exploit
+      run: |
+        chmod +x compile.sh
+        ./compile.sh
+        
+    - name: Check build artifacts
+      run: |
+        ls -lh build/
+        test -f build/exploit.iso && echo "✓ exploit.iso created successfully"
+        test -f build/code.bin && echo "✓ code.bin created"
+        test -f build/jump.bin && echo "✓ jump.bin created"
+        
+    - name: Upload exploit ISO
+      uses: actions/upload-artifact@v4
+      with:
+        name: yade-exploit-iso
+        path: build/exploit.iso
+        retention-days: 90
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: yade-build-artifacts
+        path: |
+          build/code.bin
+          build/jump.bin
+          build/code.elf
+          build/jump.elf
+        retention-days: 30
+        
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          build/exploit.iso
+          build/code.bin
+          build/jump.bin
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

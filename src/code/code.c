@@ -1,14 +1,15 @@
-#include "ps2syscalls.h"
+#include "ps2cstd.h"
 #include "ps2elf.h"
 #include "ps2int.h"
-#include "ps2cstd.h"
 #include "ps2misc.h"
 #include "ps2rpc.h"
+#include "ps2syscalls.h"
 
 typedef int (*readBufferInternal_t)(char *, int, int, void *, int, int);
 readBufferInternal_t readBufferInternal = (readBufferInternal_t)0x00244438;
 
-static void readDiscData(int off, u8 *dest, int len) {
+static void readDiscData(int off, u8 *dest, int len)
+{
     u8 tmp[0x800];
     if (len <= 0) {
         return;
@@ -18,7 +19,8 @@ static void readDiscData(int off, u8 *dest, int len) {
 
     if (skip) {
         int first = 0x800 - skip;
-        if (first > len) first = len;
+        if (first > len)
+            first = len;
         readBufferInternal("", 0, s++, tmp, 1, 0);
         memcpy(dest, &tmp[skip], first);
         dest += first;
@@ -37,7 +39,8 @@ static void readDiscData(int off, u8 *dest, int len) {
     }
 }
 
-void main() {
+void main()
+{
     int off = (391 - 281) << 11;
     Elf32_Ehdr ehdr;
     readDiscData(off, (u8 *)&ehdr, sizeof(Elf32_Ehdr));
@@ -47,7 +50,7 @@ void main() {
         readDiscData(phdr_off, (u8 *)&phdr, sizeof(Elf32_Phdr));
         if (phdr.p_type == PT_LOAD) {
             readDiscData(off + phdr.p_offset, (u8 *)phdr.p_vaddr, phdr.p_filesz);
-            if(phdr.p_memsz > phdr.p_filesz) {
+            if (phdr.p_memsz > phdr.p_filesz) {
                 memset((u8 *)phdr.p_vaddr + phdr.p_filesz, 0, phdr.p_memsz - phdr.p_filesz);
             }
         }
@@ -55,13 +58,14 @@ void main() {
     FlushCache(0);
     FlushCache(2);
     sceSifResetIop("rom0:UDNL rom0:EELOADCNF", 0);
-    while(!sceSifSyncIop());
+    while (!sceSifSyncIop())
+        ;
     sceSifInitRpc(0);
     sceSifExitRpc();
     ExecPS2((void *)ehdr.e_entry, 0, 0, NULL);
 }
 
-__attribute__((section(".text.boot")))
-void _start(void) {
+__attribute__((section(".text.boot"))) void _start(void)
+{
     main();
 }
