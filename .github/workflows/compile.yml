@@ -12,17 +12,8 @@ jobs:
     - name: git checkout
       uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: |
-        # Образ ps2dev:latest базируется на Alpine Linux.
-        # Вместо apt-get используем apk.
-        # cdrkit содержит genisoimage (mkisofs).
-        apk add --no-cache cdrkit build-base
-
     - name: Compile
-      run: |
-        chmod +x compile.sh
-        ./compile.sh
+      run: ./compile.sh
 
     - name: Upload ISO Artifact
       uses: actions/upload-artifact@v4
