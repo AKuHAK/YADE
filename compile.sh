@@ -59,7 +59,7 @@ cp --recursive fs build/
 
 ./build/injector.elf
 
-truncate -s 6KiB build/code.bin
+truncate -s 6144 build/code.bin
 cp build/code.bin build/fs/VIDEO_TS/VIDEO_TS.BUP
 cp build/fs/VIDEO_TS/VTS_01_1.VOB build/fs/VIDEO_TS/VTS_02_1.VOB
 
