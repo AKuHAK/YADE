@@ -47,11 +47,6 @@ The exploit works by:
 3. Redirecting execution to custom code loaded from the disc
 4. Loading and executing a custom ELF binary
 
-The exploit targets specific memory addresses in the PS2 DVD player 3.00E:
-- `VM_CMD_PARSER_SWITCH_ADDR`: 0x00909208
-- `JUMP_POINTER`: 0x0090ec20
-- `VM_ADDR`: 0x01558e40
-
 ## License
 
 This is a proof-of-concept exploit for research purposes. Use at your own risk.
