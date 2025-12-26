@@ -2,9 +2,9 @@ cd "$(dirname "$0")"
 
 rm -rf build
 mkdir build
-rm fs/VIDEO_TS/VTS_01_0.IFO
-rm fs/VIDEO_TS/VTS_02_0.BUP
-rm fs/VIDEO_TS/VTS_02_0.IFO
+rm -f fs/VIDEO_TS/VTS_01_0.IFO
+rm -f fs/VIDEO_TS/VTS_02_0.BUP
+rm -f fs/VIDEO_TS/VTS_02_0.IFO
 cp fs/VIDEO_TS/VTS_01_0.BUP fs/VIDEO_TS/VTS_01_0.IFO
 cp fs/VIDEO_TS/VTS_01_0.BUP fs/VIDEO_TS/VTS_02_0.BUP
 cp fs/VIDEO_TS/VTS_01_0.BUP fs/VIDEO_TS/VTS_02_0.IFO
@@ -70,3 +70,6 @@ cp build/code.bin build/fs/VIDEO_TS/VIDEO_TS.BUP
 cp build/fs/VIDEO_TS/VTS_01_1.VOB build/fs/VIDEO_TS/VTS_02_1.VOB
 
 genisoimage -dvd-video -V "" -o build/exploit.iso build/fs/
+rm fs/VIDEO_TS/VTS_01_0.IFO
+rm fs/VIDEO_TS/VTS_02_0.BUP
+rm fs/VIDEO_TS/VTS_02_0.IFO
