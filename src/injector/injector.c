@@ -14,12 +14,12 @@ int generate_exploit_pgc(char *out_path, uint32_t off, uint32_t len, uint32_t ea
     if (!pgc) {
         return -1;
     }
-    
+
     if (!out_path) {
         free(pgc);
         return -1;
     }
- 
+
     for (int i = 0; i < 16; ++i) {
         pgc->pgc_gi.pgc_sp_plt[i] = 0x108080;
     }

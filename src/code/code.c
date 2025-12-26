@@ -41,12 +41,12 @@ void main() {
     int off = (391 - 281) << 11;
     Elf32_Ehdr ehdr;
     readDiscData(off, (u8 *)&ehdr, sizeof(Elf32_Ehdr));
-    
+
     // Validate ELF header
     if (ehdr.e_phnum > 256 || ehdr.e_phnum == 0) {
         return;  // Invalid program header count
     }
-    
+
     for (int i = 0; i < ehdr.e_phnum; i++) {
         Elf32_Phdr phdr;
         int phdr_off = off + ehdr.e_phoff + (i * sizeof(Elf32_Phdr));
