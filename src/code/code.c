@@ -121,9 +121,14 @@ void main() {
     unsigned char *elf_data = (unsigned char *)0x100000;
     Elf32_Ehdr *ehdr = (Elf32_Ehdr *)elf_data;
 
+    setup_pointers();
+
     sceSifInitRpc(0);
     readBufferInternal("", 0, elf_rsect, elf_data, BOOT_FILE_SC, 0);
     sceSifExitRpc();
+
+    while (!sceSifResetIop("", 0));
+    while(!sceSifSyncIop());
 
     // Validate ELF header
     if (ehdr->e_phnum > 256 || ehdr->e_phnum == 0) {
@@ -139,7 +144,7 @@ void main() {
             if (phdr->p_memsz > 0x2000000 || phdr->p_filesz > phdr->p_memsz) {
                 continue;  // Skip invalid segments
             }
-            memcpy((unsigned char *)(unsigned long)phdr->p_vaddr, elf_data + phdr->p_offset, phdr->p_filesz);
+            memmove((unsigned char *)(unsigned long)phdr->p_vaddr, elf_data + phdr->p_offset, phdr->p_filesz);
             if(phdr->p_memsz > phdr->p_filesz) {
                 memset((unsigned char *)(unsigned long)phdr->p_vaddr + phdr->p_filesz, 0, phdr->p_memsz - phdr->p_filesz);
             }
@@ -149,14 +154,7 @@ void main() {
     FlushCache(0);
     FlushCache(2);
 
-    while (!sceSifResetIop("", 0));
-    while(!sceSifSyncIop());
-
     ExecPS2((void *)(unsigned long)ehdr->e_entry, 0, 0, NULL);
-}
 
-__attribute__((section(".text.boot")))
-void _start(void) {
-    setup_pointers();
-    main();
+    Exit(0); // This should never occur
 }

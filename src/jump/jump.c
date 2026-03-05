@@ -48,13 +48,11 @@ static void killAllThreads(void) {
     }
 }
 
-__attribute__((section(".text.boot")))
-void _start(void) {
-    asm ("la $sp, 0x70004000");
+void main(void) {
     killAllThreads();
     readBufferInternal("", 0, 4, code, 2, 0);
     FlushCache(0);
     FlushCache(2);
     code();
-    for (;;);
+    Exit(0);
 }

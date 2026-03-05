@@ -76,6 +76,7 @@ mipsel-none-elf-gcc \
     -Os \
     -Wl,-z,max-page-size=0x1 \
     -o build/code.elf \
+    src/code/*.S \
     src/code/*.c
 
 mipsel-none-elf-objcopy \
@@ -86,6 +87,8 @@ mipsel-none-elf-objcopy \
     -j .bss \
     build/code.elf \
     build/code.bin
+
+echo "actual code.bin size: $(wc -c < build/code.bin)"
 
 mipsel-none-elf-gcc \
     -DV$dvd_ver \
@@ -102,8 +105,8 @@ mipsel-none-elf-gcc \
     -Os \
     -Wl,-z,max-page-size=0x1 \
     -o build/jump.elf \
-    src/jump/jump.c \
-    src/jump/ps2syscalls.c
+    src/jump/*.S \
+    src/jump/*.c
 
 mipsel-none-elf-objcopy \
     -O binary \
@@ -113,6 +116,8 @@ mipsel-none-elf-objcopy \
     -j .bss \
     build/jump.elf \
     build/jump.bin
+
+echo "actual jump.bin size: $(wc -c < build/jump.bin)"
 
 gcc -DV$dvd_ver src/injector/*.c -o build/injector.elf
 

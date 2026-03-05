@@ -8,17 +8,17 @@ typedef struct {
 	unsigned int mode;
 } sceSifDmaData;
 
-void ExecPS2(void *entry, void *gp, int argc, char **argv);
-void FlushCache(int mode);
-void DeleteThread(int thread_id);
-void TerminateThread(int thread_id);
-void ChangeThreadPriority(int thread_id, int priority);
-int GetThreadId(void);
-int CancelWakeupThread(int thread_id);
-int Exit(int status);
-void sceSifStopDma(void);
-int sceSifGetReg(unsigned int register_num);
-int sceSifSetReg(unsigned int register_num, int register_value);
-unsigned int sceSifSetDma(sceSifDmaData *sdd, int len);
+extern void ExecPS2(void *entry, void *gp, int argc, char **argv);
+extern void FlushCache(int mode);
+extern void DeleteThread(int thread_id);
+extern void TerminateThread(int thread_id);
+extern void ChangeThreadPriority(int thread_id, int priority);
+extern int GetThreadId(void);
+extern int CancelWakeupThread(int thread_id);
+extern int Exit(int status);
+extern void sceSifStopDma(void);
+extern int sceSifGetReg(unsigned int register_num);
+extern int sceSifSetReg(unsigned int register_num, int register_value);
+extern unsigned int sceSifSetDma(sceSifDmaData *sdd, int len);
 
 #endif
