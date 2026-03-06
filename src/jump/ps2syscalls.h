@@ -7,6 +7,5 @@ extern void TerminateThread(int thread_id);
 extern void ChangeThreadPriority(int thread_id, int priority);
 extern int GetThreadId(void);
 extern int CancelWakeupThread(int thread_id);
-extern int Exit(int status);
 
 #endif

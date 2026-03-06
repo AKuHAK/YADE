@@ -17,4 +17,3 @@ syscall_map TerminateThread, 0x25
 syscall_map ChangeThreadPriority, 0x29
 syscall_map GetThreadId, 0x2f
 syscall_map CancelWakeupThread, 0x35
-syscall_map Exit, 0x04

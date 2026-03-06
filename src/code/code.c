@@ -117,7 +117,8 @@ static void setup_pointers() {
     }
 }
 
-void main() {
+int main() {
+    static char *elf_args[1] = {"cdfs:BOOT.ELF"};
     unsigned char *elf_data = (unsigned char *)0x100000;
     Elf32_Ehdr *ehdr = (Elf32_Ehdr *)elf_data;
 
@@ -127,12 +128,9 @@ void main() {
     readBufferInternal("", 0, elf_rsect, elf_data, BOOT_FILE_SC, 0);
     sceSifExitRpc();
 
-    while (!sceSifResetIop("", 0));
-    while(!sceSifSyncIop());
-
     // Validate ELF header
     if (ehdr->e_phnum > 256 || ehdr->e_phnum == 0) {
-        Exit(0);  // Invalid program header count
+        return 1;  // Invalid program header count
     }
 
     for (int i = 0; i < ehdr->e_phnum; ++i) {
@@ -154,7 +152,10 @@ void main() {
     FlushCache(0);
     FlushCache(2);
 
-    ExecPS2((void *)(unsigned long)ehdr->e_entry, 0, 0, NULL);
+    while (!sceSifResetIop("", 0));
+    while(!sceSifSyncIop());
 
-    Exit(0); // This should never occur
+    ExecPS2((void *)(unsigned long)ehdr->e_entry, 0, 1, elf_args);
+
+    return 0; // This should never occur
 }

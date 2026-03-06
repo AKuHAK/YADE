@@ -48,11 +48,11 @@ static void killAllThreads(void) {
     }
 }
 
-void main(void) {
+int main(void) {
     killAllThreads();
     readBufferInternal("", 0, 4, code, 2, 0);
     FlushCache(0);
     FlushCache(2);
     code();
-    Exit(0);
+    return 0;
 }
