@@ -6,15 +6,12 @@ target_ver=$1
 
 echo "=== Building Universal ISO for Major Version: $target_ver ==="
 
-rm -rf build
 mkdir -p build
 
-# Флаги компиляции: 
-# -G0 отключает использование малых секций данных (фикс R_MIPS_GPREL16)
-# -fno-pic и -mno-abicalls важны для "голого" железа
+# Флаги компиляции
 CFLAGS="-Os -march=r5900 -mabi=eabi -ffreestanding -nostdlib -G0 -fno-pic -mno-abicalls"
 
-# 1. Сборка основного кода
+# 1. Сборка основного кода (payload)
 mipsel-none-elf-gcc $CFLAGS \
     -Isrc/code \
     -DBOOT_FILE_SIZE=$(wc -c < fs/BOOT.ELF) \
@@ -24,27 +21,24 @@ mipsel-none-elf-gcc $CFLAGS \
 
 mipsel-none-elf-objcopy -O binary build/code.elf build/code.bin
 
-# 2. Сборка универсального загрузчика
+# 2. Сборка универсального загрузчика (jump)
+# ВАЖНО: Добавляем src/code/ps2cstd.c для поддержки memcpy/memset
 mipsel-none-elf-gcc $CFLAGS \
-    -Isrc/jump \
+    -Isrc/jump -Isrc/code \
     -T src/ld/jump.ld \
     -o build/jump.elf \
-    src/jump/*.c src/jump/*.S
+    src/jump/*.c src/jump/*.S src/code/ps2cstd.c
 
 mipsel-none-elf-objcopy -O binary build/jump.elf build/jump.bin
 
-# 3. Сборка инжектора (нативный GCC)
-gcc -Isrc/injector src/injector/*.c src/injector/*.h -o build/injector.elf
+# 3. Сборка инжектора
+gcc -Isrc/injector -Isrc/code src/injector/*.c src/code/pgc.c -o build/injector.elf
 
-# Подготовка структуры папок для ISO
+# 4. Создание ISO
+rm -rf build/fs
 cp -r fs build/fs
-
-# Запуск инжектора, который создаст несколько VTS файлов под разные регионы
 ./build/injector.elf "$target_ver"
 
-# Финализация образа
 truncate -s 8192 build/code.bin
 cp build/code.bin build/fs/VIDEO_TS/VIDEO_TS.BUP
-genisoimage -dvd-video -V "YADE_$target_ver" -o build/exploit.iso build/fs/
-
-echo "Build successful for $target_ver"
+genisoimage -dvd-video -V "YADE" -o build/exploit.iso build/fs/
