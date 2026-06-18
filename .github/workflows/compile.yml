@@ -1,7 +1,27 @@
-- name: Compile
+name: Build YADE Exploit
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ghcr.io/ps2homebrew/ps2homebrew:main
+    steps:
+    - name: git checkout
+      uses: actions/checkout@v6
+
+    - name: Compile
       run: |
         mkdir -p release
         for v in 3.00 3.02 3.03 3.04; do
           ./compile.sh $v
           mv build/exploit.iso release/YADE_Universal_$v.iso
         done
+
+    - name: Upload ISO Artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: YADE-exploit-Universal
+        path: release/
