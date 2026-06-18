@@ -1,7 +1,6 @@
-#include "ps2syscalls.h"
-
 typedef int (*readBufferInternal_t)(char *, int, int, void *, int, int);
 typedef void (*code_t)(void);
+
 
 static inline int GetThreadId(void) {
     register int v0 asm("v0");
@@ -13,9 +12,11 @@ static inline void ChangeThreadPriority(int thread_id, int priority) {
     register int a1 asm("a1") = priority;
     asm volatile ("li $v1, 0x29\nsyscall\n" : : "r"(a0), "r"(a1) : "v1", "memory");
 }
-static inline void CancelWakeupThread(int thread_id) {
+static inline int CancelWakeupThread(int thread_id) {
+    register int v0 asm("v0");
     register int a0 asm("a0") = thread_id;
-    asm volatile ("li $v1, 0x35\nsyscall\n" : : "r"(a0) : "v1", "memory");
+    asm volatile ("li $v1, 0x35\nsyscall\n" : "=r"(v0) : "r"(a0) : "v1", "memory");
+    return v0;
 }
 static inline void TerminateThread(int thread_id) {
     register int a0 asm("a0") = thread_id;
@@ -43,35 +44,27 @@ int main(void) {
 
     readBufferInternal_t readBufferInternal = (readBufferInternal_t)0;
 
-    unsigned int *v300e = (unsigned int *)0x009091a0;
-    unsigned int *v300u = (unsigned int *)0x009090a0;
-    unsigned int *v300j = (unsigned int *)0x00684920;
-    unsigned int *v302e = (unsigned int *)0x0090c310;
-    unsigned int *v302c = (unsigned int *)0x006ee290;
-    unsigned int *v302d = (unsigned int *)0x00678410;
-    unsigned int *v302g = (unsigned int *)0x00683d90;
-    unsigned int *v302j = (unsigned int *)0x00685f10;
-    unsigned int *v302k = (unsigned int *)0x00682810;
-    unsigned int *v302u = (unsigned int *)0x0090c210;
-    unsigned int *v303e = (unsigned int *)0x00923d10;
-    unsigned int *v303j = (unsigned int *)0x0069de10;
-    unsigned int *v304m = (unsigned int *)0x0095ac70;
-    unsigned int *v304j = (unsigned int *)0x006d4df0;
 
-    if (v300e[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x00244438;
-    else if (v300u[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x00244378;
-    else if (v300j[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x00244018;
-    else if (v302e[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x002566d8;
-    else if (v302c[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x002566b8;
-    else if (v302d[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x002566b8;
-    else if (v302g[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x002566b8;
-    else if (v302j[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x00256330;
-    else if (v302k[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x002566a8;
-    else if (v302u[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x00256668;
-    else if (v303e[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x00262360;
-    else if (v303j[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x00262340;
-    else if (v304m[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x00261548;
-    else if (v304j[0] == 0x45444956) readBufferInternal = (readBufferInternal_t)0x00261560;
+    unsigned int *v_addrs[] = {
+        (unsigned int *)0x009091a0, (unsigned int *)0x009090a0, (unsigned int *)0x00684920,
+        (unsigned int *)0x0090c310, (unsigned int *)0x006ee290, (unsigned int *)0x00678410,
+        (unsigned int *)0x00683d90, (unsigned int *)0x00685f10, (unsigned int *)0x00682810,
+        (unsigned int *)0x0090c210, (unsigned int *)0x00923d10, (unsigned int *)0x0069de10,
+        (unsigned int *)0x0095ac70, (unsigned int *)0x006d4df0
+    };
+
+    unsigned int rbi_addrs[] = {
+        0x00244438, 0x00244378, 0x00244018, 0x002566d8, 0x002566b8, 0x002566b8,
+        0x002566b8, 0x00256330, 0x002566a8, 0x00256668, 0x00262360, 0x00262340,
+        0x00261548, 0x00261560
+    };
+
+    for (int i = 0; i < 14; i++) {
+        if (v_addrs[i][0] == 0x45444956) { // "VIDE"
+            readBufferInternal = (readBufferInternal_t)rbi_addrs[i];
+            break;
+        }
+    }
 
     if (readBufferInternal) {
         code_t code = (code_t)((void *)(0x2000000 - (0x800 * 3)));

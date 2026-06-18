@@ -1,59 +1,28 @@
 #!/bin/bash
-cd "$(dirname "$0")"
+set -e
 
 target_ver=$1
-if [[ -z "$target_ver" ]]; then
-    target_ver="3.00"
-fi
-echo "Building universal disc for major version: $target_ver"
+[[ -z "$target_ver" ]] && target_ver="3.00"
 
-rm -rf build
-mkdir build
-cp --recursive fs build/
+echo "=== Building Universal PS2 Exploit [$target_ver] ==="
 
-mipsel-none-elf-gcc \
-    -DBOOT_FILE_SIZE=$(wc -c < fs/BOOT.ELF) \
-    -T src/ld/code.ld \
-    -march=r5900 \
-    -mabi=eabi \
-    -mno-gpopt \
-    -G0 \
-    -nostartfiles \
-    -nostdlib \
-    -ffreestanding \
-    -fno-toplevel-reorder \
-    -Os \
-    -Wl,-z,max-page-size=0x1 \
-    -o build/code.elf \
-    src/code/*.S \
-    src/code/*.c
+mkdir -p build
 
-mipsel-none-elf-objcopy -O binary -j .text -j .rodata -j .data -j .bss build/code.elf build/code.bin
-echo "actual code.bin size: $(wc -c < build/code.bin)"
+mipsel-none-elf-gcc -Os -march=r5900 -mabi=eabi -ffreestanding -nostdlib \
+    -Isrc/code -T src/ld/code.ld -o build/code.elf src/code/*.c src/code/*.S
+mipsel-none-elf-objcopy -O binary build/code.elf build/code.bin
 
-mipsel-none-elf-gcc \
-    -T src/ld/jump.ld \
-    -march=r5900 \
-    -mabi=eabi \
-    -mno-gpopt \
-    -G0 \
-    -nostartfiles \
-    -nostdlib \
-    -ffreestanding \
-    -fno-toplevel-reorder \
-    -Os \
-    -Wl,-z,max-page-size=0x1 \
-    -o build/jump.elf \
-    src/jump/*.S \
-    src/jump/*.c
+mipsel-none-elf-gcc -Os -march=r5900 -mabi=eabi -ffreestanding -nostdlib \
+    -Isrc/jump -T src/ld/jump.ld -o build/jump.elf src/jump/*.c src/jump/*.S
+mipsel-none-elf-objcopy -O binary build/jump.elf build/jump.bin
 
-mipsel-none-elf-objcopy -O binary -j .text -j .rodata -j .data -j .bss build/jump.elf build/jump.bin
-echo "actual jump.bin size: $(wc -c < build/jump.bin)"
-
-gcc src/injector/*.c src/injector/*.h -o build/injector.elf
+gcc -Isrc/injector src/injector/*.c -o build/injector.elf
+rm -rf build/fs
+cp -r fs build/fs
 ./build/injector.elf "$target_ver"
 
 truncate -s 8192 build/code.bin
 cp build/code.bin build/fs/VIDEO_TS/VIDEO_TS.BUP
+genisoimage -dvd-video -V "YADE" -o "release/exploit_$target_ver.iso" build/fs/
 
-genisoimage -dvd-video -V "YADE_$target_ver" -o build/exploit.iso build/fs/
+echo "Done: release/exploit_$target_ver.iso"
