@@ -417,23 +417,26 @@ int main(int argc, char *argv[]) {
             uint32_t VM_PATCH_LOC = IFO_CMDT_PATCH_LOC + 8 + (NEEDED_LEN - 24);
             uint32_t DR_PATCH_LOC = IFO_CMDT_PATCH_LOC + 8 + (cfg->DR_ADDR - cfg->CMD_DATA_ADDR);
 
-#define SECTS_ALIGN(x)    ((x) & ~0x3fffu)
-#define C_DR_LBA(x)       (SECTS_ALIGN(DR_PATCH_LOC + (x)) >> 11)
-#define C_DR_LBA_REM(x)   ((DR_PATCH_LOC + (x)) - SECTS_ALIGN(DR_PATCH_LOC + (x)))
+            /* Sector-alignment helpers used to compute the disc LBA and stream-pointer
+             * fields inside the data-reader context.  Alignment is to 0x4000-byte
+             * (8-sector) boundaries; LBA is in 2048-byte (0x800) sector units. */
+#define SECTS_ALIGN(x)          ((x) & ~0x3fffu)
+#define DR_LBA_AT(off)          (SECTS_ALIGN(DR_PATCH_LOC + (off)) >> 11)
+#define DR_LBA_REM_AT(off)      ((DR_PATCH_LOC + (off)) - SECTS_ALIGN(DR_PATCH_LOC + (off)))
 
             uint8_t data_reader_ctx[480];
             memset(data_reader_ctx, 0, sizeof(data_reader_ctx));
 
-            /* STATUS */
-            /* (all zeros) */
+            /* STATUS: all zeros */
             /* VTSN (two copies) */
             data_reader_ctx[4]  = 4;
             data_reader_ctx[8]  = 4;
-            /* LBA (4 bytes computed across consecutive offsets to handle sector boundaries) */
-            data_reader_ctx[12] =  C_DR_LBA(12)        & 0xff;
-            data_reader_ctx[13] = (C_DR_LBA(13) >> 8)  & 0xff;
-            data_reader_ctx[14] = (C_DR_LBA(14) >> 16) & 0xff;
-            data_reader_ctx[15] = (C_DR_LBA(15) >> 24) & 0xff;
+            /* LBA: each byte is derived from its own offset so that the value remains
+             * correct even if the 4-byte field straddles a sector-alignment boundary. */
+            data_reader_ctx[12] =  DR_LBA_AT(12)        & 0xff;
+            data_reader_ctx[13] = (DR_LBA_AT(13) >> 8)  & 0xff;
+            data_reader_ctx[14] = (DR_LBA_AT(14) >> 16) & 0xff;
+            data_reader_ctx[15] = (DR_LBA_AT(15) >> 24) & 0xff;
             /* SECTOR_CNT */
             data_reader_ctx[16] = 8;
             /* File EA fields: VIDEO_TS.IFO=3, VTS_01=5, VTS_02=5, VTS_03=5, VTS_04=19 */
@@ -442,11 +445,12 @@ int main(int argc, char *argv[]) {
             data_reader_ctx[28] = 5;
             data_reader_ctx[32] = 5;
             data_reader_ctx[36] = 19;
-            /* STM_PTR (stream pointer, 4 bytes at consecutive offsets) */
-            data_reader_ctx[420] =  (cfg->IFO_BUFFER + C_DR_LBA_REM(420) + 1)        & 0xff;
-            data_reader_ctx[421] = ((cfg->IFO_BUFFER + C_DR_LBA_REM(421) + 1) >> 8)  & 0xff;
-            data_reader_ctx[422] = ((cfg->IFO_BUFFER + C_DR_LBA_REM(422) + 1) >> 16) & 0xff;
-            data_reader_ctx[423] = ((cfg->IFO_BUFFER + C_DR_LBA_REM(423) + 1) >> 24) & 0xff;
+            /* STM_PTR: each byte derives its remainder from its own offset, mirroring
+             * the LBA treatment above for correctness across alignment boundaries. */
+            data_reader_ctx[420] =  (cfg->IFO_BUFFER + DR_LBA_REM_AT(420) + 1)        & 0xff;
+            data_reader_ctx[421] = ((cfg->IFO_BUFFER + DR_LBA_REM_AT(421) + 1) >> 8)  & 0xff;
+            data_reader_ctx[422] = ((cfg->IFO_BUFFER + DR_LBA_REM_AT(422) + 1) >> 16) & 0xff;
+            data_reader_ctx[423] = ((cfg->IFO_BUFFER + DR_LBA_REM_AT(423) + 1) >> 24) & 0xff;
             /* STM_EA */
             uint32_t BUFFER_END = cfg->IFO_BUFFER + 0x4000;
             data_reader_ctx[424] =  BUFFER_END        & 0xff;
@@ -460,8 +464,8 @@ int main(int argc, char *argv[]) {
             data_reader_ctx[476] = 0x2b;
 
 #undef SECTS_ALIGN
-#undef C_DR_LBA
-#undef C_DR_LBA_REM
+#undef DR_LBA_AT
+#undef DR_LBA_REM_AT
 
             if (write_at(fp, DR_PATCH_LOC, data_reader_ctx, 480) < 0) {
                 fprintf(stderr, "Error: Failed to write data_reader_ctx to VTS_04_0.IFO\n"); fclose(fp); return -1;

@@ -61,9 +61,9 @@ int main(void) {
     else if (*(volatile unsigned int *)0x006d4df0u == 0x45444956u) readBufferInternal = (readBufferInternal_t)0x00261560u; /* 3.04J */
 
     if (readBufferInternal) {
-        char dummy = 0;
+        char path_buf = 0;  /* stack-allocated path buffer; avoids a .rodata reference */
         code_t code = (code_t)(0x2000000u - 0x1800u);
-        readBufferInternal(&dummy, 0, 4, (void *)code, 2, 0);
+        readBufferInternal(&path_buf, 0, 4, (void *)code, 2, 0);
         FlushCache(0);
         FlushCache(2);
         code();
